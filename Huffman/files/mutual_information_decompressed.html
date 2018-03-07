@@ -1,0 +1,42 @@
+Mutual information as an image matching metric
+In which we look at the mutual information measure for comparing images.
+
+>>>
+>>> # - compatibility with Python 2
+>>> from __future__ import print_function  # print('me') instead of print 'me'
+>>> from __future__ import division  # 1/2 == 0.5, not 0
+>>>
+>>> # - import common modules
+>>> import numpy as np  # the Python array package
+>>> import matplotlib.pyplot as plt  # the Python plotting package
+>>>
+>>> # - set gray colormap and nearest neighbor interpolation by default
+>>> plt.rcParams['image.cmap'] = 'gray'
+>>> plt.rcParams['image.interpolation'] = 'nearest'
+Hint
+If running in the IPython console, consider running %matplotlib to enable interactive plots. If running in the Jupyter Notebook, use %matplotlib inline.
+
+When the images to match are the same modality and are well aligned, the signal should be similar in corresponding voxels. In that case, a metric like correlation is useful as a measure of how well the images are matched.
+
+If images are of different modalities, they may well have different signal intensities for the same tissue.
+
+For example, T1-weighted MRI images have low signal in the cerebro-spinal fluid (CSF), but T2-weighted images have high signal in the CSF.
+
+When the T1 and T2 images are well aligned, the voxels containing CSF will correspond spatially, but they will have very different signal. In that case a simple measure like correlation will not capture how well the two images are matched.
+
+Mutual information is a measure of image matching, that does not require the signal to be the same in the two images. It is a measure of how well you can predict the signal in the second image, given the signal intensity in the first.
+
+First let us look at a T1 and T2 image. In fact these images are from the Montreal Neurological Institute (MNI) standard brain atlas : http://www.bic.mni.mcgill.ca/ServicesAtlases/ICBM152NLin2009. See the LICENSE file for copyright and usage of these images.
+
+>>>
+>>> import nibabel as nib
+>>> t1_img = nib.load('mni_icbm152_t1_tal_nlin_asym_09a.nii')
+>>> t1_data = t1_img.get_data()
+>>> t2_img = nib.load('mni_icbm152_t2_tal_nlin_asym_09a.nii')
+>>> t2_data = t2_img.get_data()
+>>>
+>>> # Show the images by stacking them left-right with hstack
+>>> t1_slice = t1_data[:, :, 94]
+>>> t2_slice = t2_data[:, :, 94]
+>>> plt.imshow(np.hstack((t1_slice, t2_slice)))
+<...>

@@ -164,33 +164,10 @@ class FrequencyTable(object):
 
 
 
-# A binary tree that represents a mapping between symbols
-# and binary strings. There are two main uses of a code tree:
-# - Read the root field and walk through the tree to extract the desired information.
-# - Call getCode() to get the binary code for a particular encodable symbol.
-# The path to a leaf node determines the leaf's symbol's code. Starting from the root, going
-# to the left child represents a 0, and going to the right child represents a 1. Constraints:
-# - The root must be an internal node, and the tree is finite.
-# - No symbol value is found in more than one leaf.
-# - Not every possible symbol value needs to be in the tree.
-# Illustrated example:
-#   Huffman codes:
-#     0: Symbol A
-#     10: Symbol B
-#     110: Symbol C
-#     111: Symbol D
-#   Code tree:
-#       .
-#      / \
-#     A   .
-#        / \
-#       B   .
-#          / \
-#         C   D
+
 class CodeTree(object):
 	
-	# Constructs a code tree from the given tree of nodes and given symbol limit.
-	# Each symbol in the tree must have value strictly less than the symbol limit.
+
 	def __init__(self, root, symbollimit):
 		# Recursive helper function
 		def build_code_list(node, prefix):
@@ -208,15 +185,13 @@ class CodeTree(object):
 		
 		if symbollimit < 2:
 			raise ValueError("At least 2 symbols needed")
-		# The root node of this code tree
 		self.root = root
-		# Stores the code for each symbol, or None if the symbol has no code.
-		# For example, if symbol 5 has code 10011, then codes[5] is the tuple (1,0,0,1,1).
+
 		self.codes = [None] * symbollimit
 		build_code_list(root, ())  # Fill 'codes' with appropriate data
 	
 	
-	# Returns the Huffman code for the given symbol, which is a sequence of 0s and 1s.
+
 	def get_code(self, symbol):
 		if symbol < 0:
 			raise ValueError("Illegal symbol")
@@ -226,8 +201,6 @@ class CodeTree(object):
 			return self.codes[symbol]
 	
 	
-	# Returns a string representation of this code tree,
-	# useful for debugging only, and the format is subject to change.
 	def __str__(self):
 		# Recursive helper function
 		def to_str(prefix, node):
@@ -242,12 +215,10 @@ class CodeTree(object):
 
 
 
-# A node in a code tree. This class has exactly two subclasses: InternalNode, Leaf.
 class Node(object):
 	pass
 
 
-# An internal node in a code tree. It has two nodes as children.
 class InternalNode(Node):
 	def __init__(self, left, right):
 		if not isinstance(left, Node) or not isinstance(right, Node):
@@ -263,57 +234,8 @@ class Leaf(Node):
 			raise ValueError("Symbol value must be non-negative")
 		self.symbol = sym
 
-
-
-# A canonical Huffman code, which only describes the code length
-# of each symbol. Code length 0 means no code for the symbol.
-# The binary codes for each symbol can be reconstructed from the length information.
-# In this implementation, lexicographically lower binary codes are assigned to symbols
-# with lower code lengths, breaking ties by lower symbol values. For example:
-#   Code lengths (canonical code):
-#     Symbol A: 1
-#     Symbol B: 3
-#     Symbol C: 0 (no code)
-#     Symbol D: 2
-#     Symbol E: 3
-#   Sorted lengths and symbols:
-#     Symbol A: 1
-#     Symbol D: 2
-#     Symbol B: 3
-#     Symbol E: 3
-#     Symbol C: 0 (no code)
-#   Generated Huffman codes:
-#     Symbol A: 0
-#     Symbol D: 10
-#     Symbol B: 110
-#     Symbol E: 111
-#     Symbol C: None
-#   Huffman codes sorted by symbol:
-#     Symbol A: 0
-#     Symbol B: 110
-#     Symbol C: None
-#     Symbol D: 10
-#     Symbol E: 111
 class CanonicalCode(object):
 	
-	# Constructs a canonical code in one of two ways:
-	# - CanonicalCode(codelengths):
-	#   Builds a canonical Huffman code from the given array of symbol code lengths.
-	#   Each code length must be non-negative. Code length 0 means no code for the symbol.
-	#   The collection of code lengths must represent a proper full Huffman code tree.
-	#   Examples of code lengths that result in under-full Huffman code trees:
-	#   * [1]
-	#   * [3, 0, 3]
-	#   * [1, 2, 3]
-	#   Examples of code lengths that result in correct full Huffman code trees:
-	#   * [1, 1]
-	#   * [2, 2, 1, 0, 0, 0]
-	#   * [3, 3, 3, 3, 3, 3, 3, 3]
-	#   Examples of code lengths that result in over-full Huffman code trees:
-	#   * [1, 1, 1]
-	#   * [1, 1, 2, 2, 3, 3, 3, 3]
-	# - CanonicalCode(tree, symbollimit):
-	#   Builds a canonical code from the given code tree.
 	def __init__(self, codelengths=None, tree=None, symbollimit=None):
 		if codelengths is not None and tree is None and symbollimit is None:
 			# Check basic validity
@@ -374,14 +296,10 @@ class CanonicalCode(object):
 			raise ValueError("Invalid arguments")
 	
 	
-	# Returns the symbol limit for this canonical Huffman code.
-	# Thus this code covers symbol values from 0 to symbolLimit-1.
 	def get_symbol_limit(self):
 		return len(self.codelengths)
 	
 	
-	# Returns the code length of the given symbol value. The result is 0
-	# if the symbol has node code; otherwise the result is a positive number.
 	def get_code_length(self, symbol):
 		if 0 <= symbol < len(self.codelengths):
 			return self.codelengths[symbol]
@@ -389,14 +307,12 @@ class CanonicalCode(object):
 			raise ValueError("Symbol out of range")
 	
 	
-	# Returns the canonical code tree for this canonical Huffman code.
 	def to_code_tree(self):
 		nodes = []
 		for i in range(max(self.codelengths), -1, -1):  # Descend through code lengths
 			assert len(nodes) % 2 == 0
 			newnodes = []
 			
-			# Add leaves for symbols with positive code length i
 			if i > 0:
 				for (j, codelen) in enumerate(self.codelengths):
 					if codelen == i:
@@ -412,24 +328,15 @@ class CanonicalCode(object):
 
 
 
-# ---- Bit-oriented I/O streams ----
 
-# A stream of bits that can be read. Because they come from an underlying byte stream,
-# the total number of bits is always a multiple of 8. The bits are read in big endian.
 class BitInputStream(object):
 	
-	# Constructs a bit input stream based on the given byte input stream.
 	def __init__(self, inp):
-		# The underlying byte stream to read from
 		self.input = inp
-		# Either in the range [0x00, 0xFF] if bits are available, or -1 if end of stream is reached
 		self.currentbyte = 0
-		# Number of remaining bits in the current byte, always between 0 and 7 (inclusive)
 		self.numbitsremaining = 0
 	
 	
-	# Reads a bit from this stream. Returns 0 or 1 if a bit is available, or -1 if
-	# the end of stream is reached. The end of stream always occurs on a byte boundary.
 	def read(self):
 		if self.currentbyte == -1:
 			return -1
@@ -445,8 +352,6 @@ class BitInputStream(object):
 		return (self.currentbyte >> self.numbitsremaining) & 1
 	
 	
-	# Reads a bit from this stream. Returns 0 or 1 if a bit is available, or raises an EOFError
-	# if the end of stream is reached. The end of stream always occurs on a byte boundary.
 	def read_no_eof(self):
 		result = self.read()
 		if result != -1:
@@ -463,9 +368,6 @@ class BitInputStream(object):
 
 
 
-# A stream where bits can be written to. Because they are written to an underlying
-# byte stream, the end of the stream is padded with 0's up to a multiple of 8 bits.
-# The bits are written in big endian.
 class BitOutputStream(object):
 	
 	# Constructs a bit output stream based on the given byte output stream.
@@ -488,9 +390,6 @@ class BitOutputStream(object):
 			self.numbitsfilled = 0
 	
 	
-	# Closes this stream and the underlying output stream. If called when this
-	# bit stream is not at a byte boundary, then the minimum number of "0" bits
-	# (between 0 and 7 of them) are written as padding to reach the next byte boundary.
 	def close(self):
 		while self.numbitsfilled != 0:
 			self.write(0)
